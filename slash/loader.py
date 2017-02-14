@@ -50,7 +50,6 @@ class Loader(object):
 
     def get_runnables(self, paths):
         assert context.session is not None
-
         sources = (t for repetition in range(config.root.run.repeat_all)
                    for t in self._generate_test_sources(paths))
         returned = self._collect(sources)
@@ -71,7 +70,6 @@ class Loader(object):
         return returned
 
     def _generate_test_sources(self, thing, matcher=None):
-
         if isinstance(thing, tuple):
             assert len(thing) == 2, '_generate_test_sources on tuples requires a tuple of (loadable_obj, matcher)'
             iterator = self._generate_test_sources(thing[0], matcher=thing[1])
@@ -108,9 +106,11 @@ class Loader(object):
         test_address_in_file = test.__slash__.address_in_file
         if address_in_file == test_address_in_file:
             return True
-        if '(' in test_address_in_file:
-            if address_in_file == test_address_in_file[:test_address_in_file.index('(')]:
-                return True
+        if '(' in address_in_file:
+            if test_address_in_file == address_in_file[:address_in_file.index('(')]:
+                params = address_in_file[address_in_file.index('(') + 1:-1]
+                if params == test.get_variation()._get_safe_repr():
+                    return True
 
         return False
 

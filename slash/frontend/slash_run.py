@@ -7,8 +7,7 @@ import logbook
 from ..app import Application
 from ..conf import config
 from ..exception_handling import handling_exceptions
-from ..resuming import (get_last_resumeable_session_id, get_tests_to_resume,
-                        save_resume_state)
+from ..resuming import (get_last_resumeable_session_id, get_tests_to_resume, save_resume_state, connecting_to_db)
 from ..runner import run_tests
 from ..utils.interactive import generate_interactive_test
 from ..utils.suite_files import iter_suite_file_paths
@@ -32,10 +31,12 @@ def slash_run(args, report_stream=None, resume=False, app_callback=None, working
             try:
                 with handling_exceptions():
                     if resume:
+                        to_resume = []
                         session_ids = app.positional_args
-                        if not session_ids:
-                            session_ids = [get_last_resumeable_session_id()]
-                        to_resume = [x for session_id in session_ids for x in get_tests_to_resume(session_id)]
+                        with connecting_to_db() as conn:
+                            if not session_ids:
+                                session_ids = [get_last_resumeable_session_id(conn)]
+                            to_resume = [x for session_id in session_ids for x in get_tests_to_resume(session_id, conn)]
                         collected = app.test_loader.get_runnables(to_resume)
                     else:
                         collected = _collect_tests(app, args)
@@ -45,7 +46,8 @@ def slash_run(args, report_stream=None, resume=False, app_callback=None, working
                     run_tests(collected)
 
             finally:
-                save_resume_state(app.session.results)
+                with connecting_to_db() as conn:
+                    save_resume_state(app.session.results, conn)
 
             if app.exit_code == 0 and not app.session.results.is_success(allow_skips=True):
                 app.set_exit_code(-1)
@@ -82,4 +84,3 @@ def _extend_paths_from_suite_files(paths):
     paths = list(paths)
     paths.extend(iter_suite_file_paths(suite_files))
     return paths
-
