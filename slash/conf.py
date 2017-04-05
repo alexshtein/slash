@@ -67,7 +67,7 @@ config = Config({
         "suite_files": [] // Doc("File(s) to be read for lists of tests to be run") // Cmdline(append="-f", metavar="FILENAME"),
         "stop_on_error": False // Doc("Stop execution when a test doesn't succeed") // Cmdline(on="-x"),
         "is_master": False // Doc("master") // Cmdline(on="-master"),
-        "is_slave": False // Doc("master") // Cmdline(on="-slave"),
+        "worker_id": None // Doc("master") // Cmdline(arg='--worker_id', metavar="WORKER_ID"),
         "parallel": 0 // Doc("Parallel execution") // Cmdline(arg='--parallel', metavar="NUM_WORKERS"),
         "filter_strings": [] // Doc("A string filter, selecting specific tests by string matching against their name") // Cmdline(append='-k', metavar='FILTER'),
         "repeat_each": 1 // Doc("Repeat each test a specified amount of times") // Cmdline(arg='--repeat-each', metavar="NUM_TIMES"),
